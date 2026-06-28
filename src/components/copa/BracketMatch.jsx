@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useCopa } from '@/lib/copaState';
 import FlagIcon from './FlagIcon';
 

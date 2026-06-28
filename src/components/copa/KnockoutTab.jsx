@@ -48,7 +48,7 @@ export default function KnockoutTab() {
         <div className="flex items-stretch w-max mx-auto">
           {/* Left side */}
           <div className="flex items-stretch">
-            <BracketColumn matches={bracket.r32.slice(0, 8)} side="left" label="ROUND OF 32" color="hsl(200,20%,40%)" onClickMatch={setModal} />
+            <BracketColumn matches={bracket.r32.slice(0, 8)} side="left" label="16 AVOS" color="hsl(200,20%,40%)" onClickMatch={setModal} />
             <BracketColumn matches={bracket.r16.slice(0, 4)} side="left" label="OITAVAS" color="hsl(200,20%,50%)" onClickMatch={setModal} />
             <BracketColumn matches={bracket.qf.slice(0, 2)} side="left" label="QUARTAS" color="hsl(25,100%,55%)" onClickMatch={setModal} />
             <BracketColumn matches={bracket.sf.slice(0, 1)} side="left" label="SEMIFINAL" color="hsl(190,100%,50%)" onClickMatch={setModal} />
@@ -120,7 +120,7 @@ export default function KnockoutTab() {
 
           {/* Right side (reversed) */}
           <div className="flex items-stretch flex-row-reverse">
-            <BracketColumn matches={bracket.r32.slice(8, 16)} side="right" label="ROUND OF 32" color="hsl(200,20%,40%)" onClickMatch={setModal} />
+            <BracketColumn matches={bracket.r32.slice(8, 16)} side="right" label="16 AVOS" color="hsl(200,20%,40%)" onClickMatch={setModal} />
             <BracketColumn matches={bracket.r16.slice(4, 8)} side="right" label="OITAVAS" color="hsl(200,20%,50%)" onClickMatch={setModal} />
             <BracketColumn matches={bracket.qf.slice(2, 4)} side="right" label="QUARTAS" color="hsl(25,100%,55%)" onClickMatch={setModal} />
             <BracketColumn matches={bracket.sf.slice(1, 2)} side="right" label="SEMIFINAL" color="hsl(190,100%,50%)" onClickMatch={setModal} />

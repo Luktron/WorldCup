@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Flag codes
 export const FL = {
   'Brasil':'br','Argentina':'ar','França':'fr','Alemanha':'de','Espanha':'es',

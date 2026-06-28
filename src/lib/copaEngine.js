@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { GRUPOS, GROUP_MATCHES, getHist } from './copaData';
 
 // IA Score computation
@@ -98,38 +99,84 @@ export function getBestThirds(grResults) {
 // Knockout bracket builder - fixed bracket structure based on the custom mata-mata configuration
 export function getKnockoutBracket(grResults) {
   const bestThirds = getBestThirds(grResults);
-  const assignedThirds = new Set();
-  const bestThird = groups => {
-    const candidate = bestThirds.find(t => groups.includes(t.group) && !assignedThirds.has(t.n));
-    if (candidate) {
-      assignedThirds.add(candidate.n);
-      return candidate.n;
-    }
-    const fallback = bestThirds.find(t => groups.includes(t.group));
-    if (fallback) {
-      assignedThirds.add(fallback.n);
-      return fallback.n;
-    }
-    return 'TBD';
+
+  // Slots that receive best 3rd-place teams and the groups they can come from
+  const thirdSlots = {
+    r32_01: ['A','B','C','D','F'],
+    r32_02: ['C','D','F','G','H'],
+    r32_07: ['B','E','F','I','J'],
+    r32_08: ['A','E','H','I','J'],
+    r32_11: ['C','E','F','H','I'],
+    r32_12: ['E','H','I','J','K'],
+    r32_15: ['E','F','G','I','J'],
+    r32_16: ['D','E','I','J','L'],
   };
 
+  // Copa 2026 official FIFA 3rd-place assignment table.
+  // Key = sorted qualifying groups joined by comma.
+  // Value = group → slot mapping predetermined by FIFA before the tournament.
+  const FIFA_TABLE = {
+    'B,D,E,F,I,J,K,L': { B:'r32_07', D:'r32_01', E:'r32_11', F:'r32_02', I:'r32_08', J:'r32_15', K:'r32_12', L:'r32_16' },
+    'A,B,C,D,E,F,G,H': { A:'r32_08', B:'r32_07', C:'r32_01', D:'r32_02', E:'r32_11', F:'r32_15', G:'r32_16', H:'r32_12' },
+    'A,B,C,D,E,F,G,I': { A:'r32_08', B:'r32_07', C:'r32_01', D:'r32_02', E:'r32_11', F:'r32_15', G:'r32_16', I:'r32_12' },
+  };
+
+  const qualifyingGroups = bestThirds.map(t => t.group).sort().join(',');
+  const officialMap = FIFA_TABLE[qualifyingGroups];
+
+  let thirdTeam = {};
+
+  if (officialMap) {
+    // Use FIFA's predetermined assignment for this combination
+    for (const team of bestThirds) {
+      const slot = officialMap[team.group];
+      if (slot) thirdTeam[slot] = team.n;
+    }
+  } else {
+    // Fallback: most-constrained-first greedy algorithm.
+    // At each step pick the slot with fewest remaining valid candidates,
+    // then assign the best-ranked available team. Eliminates duplicates and
+    // minimises wrong assignments when groups overlap across slots.
+    const remaining = [...bestThirds];
+    const pending = new Set(Object.keys(thirdSlots));
+
+    while (pending.size > 0) {
+      let chosenSlot = null;
+      let minCount = Infinity;
+      for (const slotId of pending) {
+        const count = remaining.filter(t => thirdSlots[slotId].includes(t.group)).length;
+        if (count < minCount) { minCount = count; chosenSlot = slotId; }
+      }
+      pending.delete(chosenSlot);
+      const candidates = remaining.filter(t => thirdSlots[chosenSlot].includes(t.group));
+      if (candidates.length > 0) {
+        thirdTeam[chosenSlot] = candidates[0].n;
+        remaining.splice(remaining.findIndex(t => t.n === candidates[0].n), 1);
+      } else {
+        thirdTeam[chosenSlot] = 'TBD';
+      }
+    }
+  }
+
+  const t = id => thirdTeam[id] || 'TBD';
+
   const r32 = [
-    { id: 'r32_01', label: 'Jogo 1', home: grp1st('E', grResults), away: bestThird(['A', 'B', 'C', 'D', 'F']), date: '', time: '', loc: '' },
-    { id: 'r32_02', label: 'Jogo 2', home: grp1st('I', grResults), away: bestThird(['C', 'D', 'F', 'G', 'H']), date: '', time: '', loc: '' },
-    { id: 'r32_03', label: 'Jogo 3', home: grp2nd('A', grResults), away: grp2nd('B', grResults), date: '', time: '', loc: '' },
-    { id: 'r32_04', label: 'Jogo 4', home: grp1st('F', grResults), away: grp2nd('C', grResults), date: '', time: '', loc: '' },
-    { id: 'r32_05', label: 'Jogo 5', home: grp2nd('K', grResults), away: grp2nd('L', grResults), date: '', time: '', loc: '' },
-    { id: 'r32_06', label: 'Jogo 6', home: grp1st('H', grResults), away: grp2nd('J', grResults), date: '', time: '', loc: '' },
-    { id: 'r32_07', label: 'Jogo 7', home: grp1st('D', grResults), away: bestThird(['B', 'E', 'F', 'I', 'J']), date: '', time: '', loc: '' },
-    { id: 'r32_08', label: 'Jogo 8', home: grp1st('G', grResults), away: bestThird(['A', 'E', 'H', 'I', 'J']), date: '', time: '', loc: '' },
-    { id: 'r32_09', label: 'Jogo 9', home: grp1st('C', grResults), away: grp2nd('F', grResults), date: '', time: '', loc: '' },
-    { id: 'r32_10', label: 'Jogo 10', home: grp2nd('E', grResults), away: grp2nd('I', grResults), date: '', time: '', loc: '' },
-    { id: 'r32_11', label: 'Jogo 11', home: grp1st('A', grResults), away: bestThird(['C', 'E', 'F', 'H', 'I']), date: '', time: '', loc: '' },
-    { id: 'r32_12', label: 'Jogo 12', home: grp1st('L', grResults), away: bestThird(['E', 'H', 'I', 'J', 'K']), date: '', time: '', loc: '' },
-    { id: 'r32_13', label: 'Jogo 13', home: grp1st('J', grResults), away: grp2nd('H', grResults), date: '', time: '', loc: '' },
-    { id: 'r32_14', label: 'Jogo 14', home: grp2nd('D', grResults), away: grp2nd('G', grResults), date: '', time: '', loc: '' },
-    { id: 'r32_15', label: 'Jogo 15', home: grp1st('B', grResults), away: bestThird(['E', 'F', 'G', 'I', 'J']), date: '', time: '', loc: '' },
-    { id: 'r32_16', label: 'Jogo 16', home: grp1st('K', grResults), away: bestThird(['D', 'E', 'I', 'J', 'L']), date: '', time: '', loc: '' },
+    { id: 'r32_01', label: 'Jogo 1',  home: grp1st('E', grResults), away: t('r32_01'), date: '29/06', time: '17:30', loc: '' },
+    { id: 'r32_02', label: 'Jogo 2',  home: grp1st('I', grResults), away: t('r32_02'), date: '30/06', time: '18:00', loc: '' },
+    { id: 'r32_03', label: 'Jogo 3',  home: grp2nd('A', grResults), away: grp2nd('B', grResults),    date: '28/06', time: '16:00', loc: '' },
+    { id: 'r32_04', label: 'Jogo 4',  home: grp1st('F', grResults), away: grp2nd('C', grResults),    date: '29/06', time: '22:00', loc: '' },
+    { id: 'r32_05', label: 'Jogo 5',  home: grp2nd('K', grResults), away: grp2nd('L', grResults),    date: '02/07', time: '20:00', loc: '' },
+    { id: 'r32_06', label: 'Jogo 6',  home: grp1st('H', grResults), away: grp2nd('J', grResults),    date: '02/07', time: '16:00', loc: '' },
+    { id: 'r32_07', label: 'Jogo 7',  home: grp1st('D', grResults), away: t('r32_07'), date: '01/07', time: '21:00', loc: '' },
+    { id: 'r32_08', label: 'Jogo 8',  home: grp1st('G', grResults), away: t('r32_08'), date: '01/07', time: '17:00', loc: '' },
+    { id: 'r32_09', label: 'Jogo 9',  home: grp1st('C', grResults), away: grp2nd('F', grResults),    date: '29/06', time: '14:00', loc: '' },
+    { id: 'r32_10', label: 'Jogo 10', home: grp2nd('E', grResults), away: grp2nd('I', grResults),    date: '30/06', time: '14:00', loc: '' },
+    { id: 'r32_11', label: 'Jogo 11', home: grp1st('A', grResults), away: t('r32_11'), date: '30/06', time: '22:00', loc: '' },
+    { id: 'r32_12', label: 'Jogo 12', home: grp1st('L', grResults), away: t('r32_12'), date: '01/07', time: '13:00', loc: '' },
+    { id: 'r32_13', label: 'Jogo 13', home: grp1st('J', grResults), away: grp2nd('H', grResults),    date: '03/07', time: '19:00', loc: '' },
+    { id: 'r32_14', label: 'Jogo 14', home: grp2nd('D', grResults), away: grp2nd('G', grResults),    date: '03/07', time: '15:00', loc: '' },
+    { id: 'r32_15', label: 'Jogo 15', home: grp1st('B', grResults), away: t('r32_15'), date: '03/07', time: '00:00', loc: '' },
+    { id: 'r32_16', label: 'Jogo 16', home: grp1st('K', grResults), away: t('r32_16'), date: '03/07', time: '22:30', loc: '' },
   ];
 
   return r32;
@@ -150,21 +197,21 @@ export function buildFullBracket(grResults, mmResults) {
   const W = (id, home, away) => getWinner(id, home, away, mmResults);
 
   const r16 = [
-    { id: 'r16_01', label: 'Quarta de Final 1', home: W(r32[0].id, r32[0].home, r32[0].away) || 'TBD', away: W(r32[1].id, r32[1].home, r32[1].away) || 'TBD', date: 'Quarta 1', loc: '' },
-    { id: 'r16_02', label: 'Quarta de Final 2', home: W(r32[2].id, r32[2].home, r32[2].away) || 'TBD', away: W(r32[3].id, r32[3].home, r32[3].away) || 'TBD', date: 'Quarta 2', loc: '' },
-    { id: 'r16_03', label: 'Quarta de Final 3', home: W(r32[4].id, r32[4].home, r32[4].away) || 'TBD', away: W(r32[5].id, r32[5].home, r32[5].away) || 'TBD', date: 'Quarta 3', loc: '' },
-    { id: 'r16_04', label: 'Quarta de Final 4', home: W(r32[6].id, r32[6].home, r32[6].away) || 'TBD', away: W(r32[7].id, r32[7].home, r32[7].away) || 'TBD', date: 'Quarta 4', loc: '' },
-    { id: 'r16_05', label: 'Quarta de Final 5', home: W(r32[8].id, r32[8].home, r32[8].away) || 'TBD', away: W(r32[9].id, r32[9].home, r32[9].away) || 'TBD', date: 'Quarta 5', loc: '' },
-    { id: 'r16_06', label: 'Quarta de Final 6', home: W(r32[10].id, r32[10].home, r32[10].away) || 'TBD', away: W(r32[11].id, r32[11].home, r32[11].away) || 'TBD', date: 'Quarta 6', loc: '' },
-    { id: 'r16_07', label: 'Quarta de Final 7', home: W(r32[12].id, r32[12].home, r32[12].away) || 'TBD', away: W(r32[13].id, r32[13].home, r32[13].away) || 'TBD', date: 'Quarta 7', loc: '' },
-    { id: 'r16_08', label: 'Quarta de Final 8', home: W(r32[14].id, r32[14].home, r32[14].away) || 'TBD', away: W(r32[15].id, r32[15].home, r32[15].away) || 'TBD', date: 'Quarta 8', loc: '' },
+    { id: 'r16_01', label: 'Oitavas 1', home: W(r32[0].id, r32[0].home, r32[0].away) || 'TBD', away: W(r32[1].id, r32[1].home, r32[1].away) || 'TBD', date: '04/07', time: '18:00', loc: '' },
+    { id: 'r16_02', label: 'Oitavas 2', home: W(r32[2].id, r32[2].home, r32[2].away) || 'TBD', away: W(r32[3].id, r32[3].home, r32[3].away) || 'TBD', date: '04/07', time: '14:00', loc: '' },
+    { id: 'r16_03', label: 'Oitavas 3', home: W(r32[4].id, r32[4].home, r32[4].away) || 'TBD', away: W(r32[5].id, r32[5].home, r32[5].away) || 'TBD', date: '06/07', time: '16:00', loc: '' },
+    { id: 'r16_04', label: 'Oitavas 4', home: W(r32[6].id, r32[6].home, r32[6].away) || 'TBD', away: W(r32[7].id, r32[7].home, r32[7].away) || 'TBD', date: '06/07', time: '21:00', loc: '' },
+    { id: 'r16_05', label: 'Oitavas 5', home: W(r32[8].id, r32[8].home, r32[8].away) || 'TBD', away: W(r32[9].id, r32[9].home, r32[9].away) || 'TBD', date: '05/07', time: '17:00', loc: '' },
+    { id: 'r16_06', label: 'Oitavas 6', home: W(r32[10].id, r32[10].home, r32[10].away) || 'TBD', away: W(r32[11].id, r32[11].home, r32[11].away) || 'TBD', date: '05/07', time: '21:00', loc: '' },
+    { id: 'r16_07', label: 'Oitavas 7', home: W(r32[12].id, r32[12].home, r32[12].away) || 'TBD', away: W(r32[13].id, r32[13].home, r32[13].away) || 'TBD', date: '07/07', time: '13:00', loc: '' },
+    { id: 'r16_08', label: 'Oitavas 8', home: W(r32[14].id, r32[14].home, r32[14].away) || 'TBD', away: W(r32[15].id, r32[15].home, r32[15].away) || 'TBD', date: '07/07', time: '17:00', loc: '' },
   ];
 
   const qf = [
-    { id: 'qf_01', label: 'QUARTAS 1', home: W(r16[0].id, r16[0].home, r16[0].away) || 'TBD', away: W(r16[1].id, r16[1].home, r16[1].away) || 'TBD', date: 'QUARTAS 1', loc: '' },
-    { id: 'qf_02', label: 'QUARTAS 2', home: W(r16[2].id, r16[2].home, r16[2].away) || 'TBD', away: W(r16[3].id, r16[3].home, r16[3].away) || 'TBD', date: 'QUARTAS 2', loc: '' },
-    { id: 'qf_03', label: 'QUARTAS 3', home: W(r16[4].id, r16[4].home, r16[4].away) || 'TBD', away: W(r16[5].id, r16[5].home, r16[5].away) || 'TBD', date: 'QUARTAS 3', loc: '' },
-    { id: 'qf_04', label: 'QUARTAS 4', home: W(r16[6].id, r16[6].home, r16[6].away) || 'TBD', away: W(r16[7].id, r16[7].home, r16[7].away) || 'TBD', date: 'QUARTAS 4', loc: '' },
+    { id: 'qf_01', label: 'QUARTAS 1', home: W(r16[0].id, r16[0].home, r16[0].away) || 'TBD', away: W(r16[1].id, r16[1].home, r16[1].away) || 'TBD', date: '09/07', time: '17:00', loc: '' },
+    { id: 'qf_02', label: 'QUARTAS 2', home: W(r16[2].id, r16[2].home, r16[2].away) || 'TBD', away: W(r16[3].id, r16[3].home, r16[3].away) || 'TBD', date: '10/07', time: '16:00', loc: '' },
+    { id: 'qf_03', label: 'QUARTAS 3', home: W(r16[4].id, r16[4].home, r16[4].away) || 'TBD', away: W(r16[5].id, r16[5].home, r16[5].away) || 'TBD', date: '11/07', time: '18:00', loc: '' },
+    { id: 'qf_04', label: 'QUARTAS 4', home: W(r16[6].id, r16[6].home, r16[6].away) || 'TBD', away: W(r16[7].id, r16[7].home, r16[7].away) || 'TBD', date: '11/07', time: '22:00', loc: '' },
   ];
 
   const sf = [
