@@ -1,0 +1,115 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 50% 3%;
+    --foreground: 200 40% 90%;
+    --card: 210 45% 7%;
+    --card-foreground: 200 40% 90%;
+    --popover: 210 45% 7%;
+    --popover-foreground: 200 40% 90%;
+    --primary: 190 100% 50%;
+    --primary-foreground: 210 50% 3%;
+    --secondary: 210 40% 12%;
+    --secondary-foreground: 200 40% 90%;
+    --muted: 210 30% 15%;
+    --muted-foreground: 200 20% 45%;
+    --accent: 150 100% 50%;
+    --accent-foreground: 210 50% 3%;
+    --destructive: 345 82% 55%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 205 60% 20%;
+    --input: 205 60% 20%;
+    --ring: 190 100% 50%;
+    --chart-1: 190 100% 50%;
+    --chart-2: 150 100% 50%;
+    --chart-3: 25 100% 55%;
+    --chart-4: 48 100% 50%;
+    --chart-5: 345 82% 55%;
+    --radius: 0.375rem;
+    --font-heading: 'Orbitron', monospace;
+    --font-body: 'Rajdhani', sans-serif;
+    --font-display: 'Orbitron', monospace;
+    --font-mono: 'Share Tech Mono', monospace;
+    --sidebar-background: 210 45% 5%;
+    --sidebar-foreground: 200 40% 90%;
+    --sidebar-primary: 190 100% 50%;
+    --sidebar-primary-foreground: 210 50% 3%;
+    --sidebar-accent: 210 40% 12%;
+    --sidebar-accent-foreground: 200 40% 90%;
+    --sidebar-border: 205 60% 20%;
+    --sidebar-ring: 190 100% 50%;
+    --copa-green: 150 100% 50%;
+    --copa-orange: 25 100% 55%;
+    --copa-gold: 48 100% 50%;
+    --copa-red: 345 82% 55%;
+    --copa-dim: 200 20% 40%;
+  }
+
+  .dark {
+    --background: 210 50% 3%;
+    --foreground: 200 40% 90%;
+    --card: 210 45% 7%;
+    --card-foreground: 200 40% 90%;
+    --popover: 210 45% 7%;
+    --popover-foreground: 200 40% 90%;
+    --primary: 190 100% 50%;
+    --primary-foreground: 210 50% 3%;
+    --secondary: 210 40% 12%;
+    --secondary-foreground: 200 40% 90%;
+    --muted: 210 30% 15%;
+    --muted-foreground: 200 20% 45%;
+    --accent: 150 100% 50%;
+    --accent-foreground: 210 50% 3%;
+    --destructive: 345 82% 55%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 205 60% 20%;
+    --input: 205 60% 20%;
+    --ring: 190 100% 50%;
+    --chart-1: 190 100% 50%;
+    --chart-2: 150 100% 50%;
+    --chart-3: 25 100% 55%;
+    --chart-4: 48 100% 50%;
+    --chart-5: 345 82% 55%;
+    --sidebar-background: 210 45% 5%;
+    --sidebar-foreground: 200 40% 90%;
+    --sidebar-primary: 190 100% 50%;
+    --sidebar-primary-foreground: 210 50% 3%;
+    --sidebar-accent: 210 40% 12%;
+    --sidebar-accent-foreground: 200 40% 90%;
+    --sidebar-border: 205 60% 20%;
+    --sidebar-ring: 190 100% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body;
+  }
+}
+
+/* Scanline overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.03) 2px, rgba(0,0,0,.03) 4px);
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: hsl(210 50% 3%); }
+::-webkit-scrollbar-thumb { background: hsl(205 60% 20%); border-radius: 2px; }
+
+/* Flag icons sizing */
+.fi { width: 1.3em; height: 1em; background-size: cover; border-radius: 2px; vertical-align: middle; }
