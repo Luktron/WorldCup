@@ -40,7 +40,7 @@ export default function KnockoutTab() {
         Fase Eliminatória
       </div>
       <div className="bg-[hsl(25,100%,55%)]/5 border border-[hsl(25,100%,55%)]/30 p-2 text-[0.75rem] text-[hsl(25,100%,55%)] mb-3 font-mono">
-        ⚡ Confrontos definidos pela classificação dos grupos. Clique em qualquer partida para registrar o resultado.
+        ⚡ Chave personalizada do mata-mata. Confrontos configurados exatamente conforme a lista fornecida.
       </div>
 
       {/* Bracket */}

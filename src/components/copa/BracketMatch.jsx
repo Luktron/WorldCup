@@ -54,10 +54,12 @@ export default function BracketMatch({ match, side = 'left', onClickMatch }) {
     );
   };
 
+  const matchDateLabel = match.time ? `${match.date} às ${match.time}` : match.date;
+
   return (
     <div className="my-1">
       <div className="font-mono text-[0.5rem] text-muted-foreground px-1 truncate">
-        {match.label} · {match.date} {match.loc ? `· ${match.loc}` : ''}
+        {match.label} · {matchDateLabel} {match.loc ? `· ${match.loc}` : ''}
       </div>
       <TeamRow team={match.home} isWin={winH} isHome={true} />
       <TeamRow team={match.away} isWin={winA} isHome={false} />

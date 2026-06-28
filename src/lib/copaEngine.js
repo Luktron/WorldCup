@@ -95,39 +95,41 @@ export function getBestThirds(grResults) {
   return thirds.sort((a, b) => b.pts - a.pts || b.sg - a.sg || b.gf - a.gf).slice(0, 8);
 }
 
-// Knockout bracket builder - FIFA 2026 format with correct crossings
+// Knockout bracket builder - fixed bracket structure based on the custom mata-mata configuration
 export function getKnockoutBracket(grResults) {
-  const g = {};
-  Object.keys(GRUPOS).forEach(k => {
-    g[k] = { p1: grp1st(k, grResults), p2: grp2nd(k, grResults), p3: grp3rd(k, grResults) };
-  });
-
   const bestThirds = getBestThirds(grResults);
-  const bt = (pools) => {
-    const poolArr = pools.split('/');
-    const found = bestThirds.find(t => poolArr.includes(t.group));
-    return found ? found.n : `3º ${pools}`;
+  const assignedThirds = new Set();
+  const bestThird = groups => {
+    const candidate = bestThirds.find(t => groups.includes(t.group) && !assignedThirds.has(t.n));
+    if (candidate) {
+      assignedThirds.add(candidate.n);
+      return candidate.n;
+    }
+    const fallback = bestThirds.find(t => groups.includes(t.group));
+    if (fallback) {
+      assignedThirds.add(fallback.n);
+      return fallback.n;
+    }
+    return 'TBD';
   };
 
-  // Round of 32: 16 matches
-  // 1st vs 2nd crossings + 3rd place matches
   const r32 = [
-    { id: 'r32_01', label: 'R32-1',  home: g.A.p1, away: bt('C/D/E/F'), date: '28 Jun', loc: 'Kansas City' },
-    { id: 'r32_02', label: 'R32-2',  home: g.B.p2, away: g.F.p2,        date: '28 Jun', loc: 'Los Angeles' },
-    { id: 'r32_03', label: 'R32-3',  home: g.C.p1, away: bt('A/B/F/G'), date: '28 Jun', loc: 'Houston' },
-    { id: 'r32_04', label: 'R32-4',  home: g.D.p2, away: g.E.p2,        date: '28 Jun', loc: 'Dallas' },
-    { id: 'r32_05', label: 'R32-5',  home: g.E.p1, away: bt('B/C/G/H'), date: '29 Jun', loc: 'Nova York/NJ' },
-    { id: 'r32_06', label: 'R32-6',  home: g.F.p1, away: g.D.p1,        date: '29 Jun', loc: 'Seattle' },
-    { id: 'r32_07', label: 'R32-7',  home: g.G.p1, away: bt('D/E/H/I'), date: '29 Jun', loc: 'San Francisco' },
-    { id: 'r32_08', label: 'R32-8',  home: g.H.p2, away: g.A.p2,        date: '29 Jun', loc: 'Filadélfia' },
-    { id: 'r32_09', label: 'R32-9',  home: g.I.p1, away: bt('E/F/I/J'), date: '30 Jun', loc: 'Miami' },
-    { id: 'r32_10', label: 'R32-10', home: g.J.p1, away: g.L.p2,        date: '30 Jun', loc: 'Atlanta' },
-    { id: 'r32_11', label: 'R32-11', home: g.K.p1, away: bt('F/G/J/K'), date: '30 Jun', loc: 'Vancouver' },
-    { id: 'r32_12', label: 'R32-12', home: g.L.p1, away: g.H.p1,        date: '30 Jun', loc: 'Boston' },
-    { id: 'r32_13', label: 'R32-13', home: g.B.p1, away: bt('A/C/D/L'), date: '01 Jul', loc: 'Toronto' },
-    { id: 'r32_14', label: 'R32-14', home: g.C.p2, away: g.J.p2,        date: '01 Jul', loc: 'Guadalajara' },
-    { id: 'r32_15', label: 'R32-15', home: g.I.p2, away: g.K.p2,        date: '01 Jul', loc: 'Monterrey' },
-    { id: 'r32_16', label: 'R32-16', home: g.G.p2, away: bt('H/I/K/L'), date: '01 Jul', loc: 'Cidade do México' },
+    { id: 'r32_01', label: 'Jogo 1', home: grp1st('E', grResults), away: bestThird(['A', 'B', 'C', 'D', 'F']), date: '', time: '', loc: '' },
+    { id: 'r32_02', label: 'Jogo 2', home: grp1st('I', grResults), away: bestThird(['C', 'D', 'F', 'G', 'H']), date: '', time: '', loc: '' },
+    { id: 'r32_03', label: 'Jogo 3', home: grp2nd('A', grResults), away: grp2nd('B', grResults), date: '', time: '', loc: '' },
+    { id: 'r32_04', label: 'Jogo 4', home: grp1st('F', grResults), away: grp2nd('C', grResults), date: '', time: '', loc: '' },
+    { id: 'r32_05', label: 'Jogo 5', home: grp2nd('K', grResults), away: grp2nd('L', grResults), date: '', time: '', loc: '' },
+    { id: 'r32_06', label: 'Jogo 6', home: grp1st('H', grResults), away: grp2nd('J', grResults), date: '', time: '', loc: '' },
+    { id: 'r32_07', label: 'Jogo 7', home: grp1st('D', grResults), away: bestThird(['B', 'E', 'F', 'I', 'J']), date: '', time: '', loc: '' },
+    { id: 'r32_08', label: 'Jogo 8', home: grp1st('G', grResults), away: bestThird(['A', 'E', 'H', 'I', 'J']), date: '', time: '', loc: '' },
+    { id: 'r32_09', label: 'Jogo 9', home: grp1st('C', grResults), away: grp2nd('F', grResults), date: '', time: '', loc: '' },
+    { id: 'r32_10', label: 'Jogo 10', home: grp2nd('E', grResults), away: grp2nd('I', grResults), date: '', time: '', loc: '' },
+    { id: 'r32_11', label: 'Jogo 11', home: grp1st('A', grResults), away: bestThird(['C', 'E', 'F', 'H', 'I']), date: '', time: '', loc: '' },
+    { id: 'r32_12', label: 'Jogo 12', home: grp1st('L', grResults), away: bestThird(['E', 'H', 'I', 'J', 'K']), date: '', time: '', loc: '' },
+    { id: 'r32_13', label: 'Jogo 13', home: grp1st('J', grResults), away: grp2nd('H', grResults), date: '', time: '', loc: '' },
+    { id: 'r32_14', label: 'Jogo 14', home: grp2nd('D', grResults), away: grp2nd('G', grResults), date: '', time: '', loc: '' },
+    { id: 'r32_15', label: 'Jogo 15', home: grp1st('B', grResults), away: bestThird(['E', 'F', 'G', 'I', 'J']), date: '', time: '', loc: '' },
+    { id: 'r32_16', label: 'Jogo 16', home: grp1st('K', grResults), away: bestThird(['D', 'E', 'I', 'J', 'L']), date: '', time: '', loc: '' },
   ];
 
   return r32;
@@ -142,77 +144,43 @@ export function getWinner(id, home, away, mmResults) {
   return r.ph > r.pa ? home : r.pa > r.ph ? away : null;
 }
 
-// Build full bracket from r32 results onwards
+// Build full bracket from the fixed mata-mata structure
 export function buildFullBracket(grResults, mmResults) {
   const r32 = getKnockoutBracket(grResults);
   const W = (id, home, away) => getWinner(id, home, away, mmResults);
 
-  // Round of 16: 8 matches (winners of adjacent R32 matches)
-  const r16 = [];
-  for (let i = 0; i < 16; i += 2) {
-    const m1 = r32[i];
-    const m2 = r32[i + 1];
-    const w1 = W(m1.id, m1.home, m1.away);
-    const w2 = W(m2.id, m2.home, m2.away);
-    r16.push({
-      id: `r16_${String(Math.floor(i / 2) + 1).padStart(2, '0')}`,
-      label: `R16-${Math.floor(i / 2) + 1}`,
-      home: w1 || 'TBD',
-      away: w2 || 'TBD',
-      date: `${4 + Math.floor(i / 4)} Jul`,
-      loc: '',
-      fromHome: m1.label,
-      fromAway: m2.label,
-    });
-  }
+  const r16 = [
+    { id: 'r16_01', label: 'Quarta de Final 1', home: W(r32[0].id, r32[0].home, r32[0].away) || 'TBD', away: W(r32[1].id, r32[1].home, r32[1].away) || 'TBD', date: 'Quarta 1', loc: '' },
+    { id: 'r16_02', label: 'Quarta de Final 2', home: W(r32[2].id, r32[2].home, r32[2].away) || 'TBD', away: W(r32[3].id, r32[3].home, r32[3].away) || 'TBD', date: 'Quarta 2', loc: '' },
+    { id: 'r16_03', label: 'Quarta de Final 3', home: W(r32[4].id, r32[4].home, r32[4].away) || 'TBD', away: W(r32[5].id, r32[5].home, r32[5].away) || 'TBD', date: 'Quarta 3', loc: '' },
+    { id: 'r16_04', label: 'Quarta de Final 4', home: W(r32[6].id, r32[6].home, r32[6].away) || 'TBD', away: W(r32[7].id, r32[7].home, r32[7].away) || 'TBD', date: 'Quarta 4', loc: '' },
+    { id: 'r16_05', label: 'Quarta de Final 5', home: W(r32[8].id, r32[8].home, r32[8].away) || 'TBD', away: W(r32[9].id, r32[9].home, r32[9].away) || 'TBD', date: 'Quarta 5', loc: '' },
+    { id: 'r16_06', label: 'Quarta de Final 6', home: W(r32[10].id, r32[10].home, r32[10].away) || 'TBD', away: W(r32[11].id, r32[11].home, r32[11].away) || 'TBD', date: 'Quarta 6', loc: '' },
+    { id: 'r16_07', label: 'Quarta de Final 7', home: W(r32[12].id, r32[12].home, r32[12].away) || 'TBD', away: W(r32[13].id, r32[13].home, r32[13].away) || 'TBD', date: 'Quarta 7', loc: '' },
+    { id: 'r16_08', label: 'Quarta de Final 8', home: W(r32[14].id, r32[14].home, r32[14].away) || 'TBD', away: W(r32[15].id, r32[15].home, r32[15].away) || 'TBD', date: 'Quarta 8', loc: '' },
+  ];
 
-  // Quarter-finals: 4 matches
-  const qf = [];
-  for (let i = 0; i < 8; i += 2) {
-    const m1 = r16[i];
-    const m2 = r16[i + 1];
-    const w1 = W(m1.id, m1.home, m1.away);
-    const w2 = W(m2.id, m2.home, m2.away);
-    qf.push({
-      id: `qf_${String(Math.floor(i / 2) + 1).padStart(2, '0')}`,
-      label: `QF-${Math.floor(i / 2) + 1}`,
-      home: w1 || 'TBD',
-      away: w2 || 'TBD',
-      date: `${8 + Math.floor(i / 4)} Jul`,
-      loc: '',
-    });
-  }
+  const qf = [
+    { id: 'qf_01', label: 'QUARTAS 1', home: W(r16[0].id, r16[0].home, r16[0].away) || 'TBD', away: W(r16[1].id, r16[1].home, r16[1].away) || 'TBD', date: 'QUARTAS 1', loc: '' },
+    { id: 'qf_02', label: 'QUARTAS 2', home: W(r16[2].id, r16[2].home, r16[2].away) || 'TBD', away: W(r16[3].id, r16[3].home, r16[3].away) || 'TBD', date: 'QUARTAS 2', loc: '' },
+    { id: 'qf_03', label: 'QUARTAS 3', home: W(r16[4].id, r16[4].home, r16[4].away) || 'TBD', away: W(r16[5].id, r16[5].home, r16[5].away) || 'TBD', date: 'QUARTAS 3', loc: '' },
+    { id: 'qf_04', label: 'QUARTAS 4', home: W(r16[6].id, r16[6].home, r16[6].away) || 'TBD', away: W(r16[7].id, r16[7].home, r16[7].away) || 'TBD', date: 'QUARTAS 4', loc: '' },
+  ];
 
-  // Semi-finals: 2 matches
-  const sf = [];
-  for (let i = 0; i < 4; i += 2) {
-    const m1 = qf[i];
-    const m2 = qf[i + 1];
-    const w1 = W(m1.id, m1.home, m1.away);
-    const w2 = W(m2.id, m2.home, m2.away);
-    sf.push({
-      id: `sf_${String(Math.floor(i / 2) + 1).padStart(2, '0')}`,
-      label: `SF-${Math.floor(i / 2) + 1}`,
-      home: w1 || 'TBD',
-      away: w2 || 'TBD',
-      date: `${13 + Math.floor(i / 2)} Jul`,
-      loc: '',
-    });
-  }
+  const sf = [
+    { id: 'sf_01', label: 'SEMIFINAL 1', home: W(qf[0].id, qf[0].home, qf[0].away) || 'TBD', away: W(qf[1].id, qf[1].home, qf[1].away) || 'TBD', date: 'SEMIFINAL 1', loc: '' },
+    { id: 'sf_02', label: 'SEMIFINAL 2', home: W(qf[2].id, qf[2].home, qf[2].away) || 'TBD', away: W(qf[3].id, qf[3].home, qf[3].away) || 'TBD', date: 'SEMIFINAL 2', loc: '' },
+  ];
 
-  // Final
-  const w_sf1 = W(sf[0].id, sf[0].home, sf[0].away);
-  const w_sf2 = W(sf[1].id, sf[1].home, sf[1].away);
   const fin = {
     id: 'fin',
     label: 'FINAL',
-    home: w_sf1 || 'TBD',
-    away: w_sf2 || 'TBD',
-    date: '19 Jul',
-    loc: 'MetLife, NJ',
+    home: W(sf[0].id, sf[0].home, sf[0].away) || 'TBD',
+    away: W(sf[1].id, sf[1].home, sf[1].away) || 'TBD',
+    date: 'Final',
+    loc: '',
   };
 
-  // 3rd place
   const loser = (id, home, away) => {
     const r = mmResults[id];
     if (!r) return null;
@@ -227,8 +195,8 @@ export function buildFullBracket(grResults, mmResults) {
     label: '3º LUGAR',
     home: l_sf1 || 'TBD',
     away: l_sf2 || 'TBD',
-    date: '18 Jul',
-    loc: 'MetLife, NJ',
+    date: '3º Lugar',
+    loc: '',
   };
 
   const champion = W('fin', fin.home, fin.away);

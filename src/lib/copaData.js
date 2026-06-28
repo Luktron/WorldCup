@@ -5,7 +5,7 @@ export const FL = {
   'Uruguai':'uy','Colômbia':'co','México':'mx','Estados Unidos':'us','Canadá':'ca',
   'Japão':'jp','Coreia do Sul':'kr','Austrália':'au','Marrocos':'ma','Senegal':'sn',
   'Gana':'gh','África do Sul':'za','Egito':'eg','Tunísia':'tn','Argélia':'dz',
-  'Costa do Marfim':'ci','Cabo Verde':'cv','RD do Congo':'cd','República Democrática do Congo':'cd',
+  'Costa do Marfim':'ci','Cabo Verde':'cv','RD do Congo':'cd','RD Congo':'cd','República Democrática do Congo':'cd',
   'Noruega':'no','Suécia':'se','Suíça':'ch','Áustria':'at','República Tcheca':'cz',
   'Escócia':'gb-sct','Turquia':'tr','Irã':'ir','Arábia Saudita':'sa','Iraque':'iq',
   'Jordânia':'jo','Uzbequistão':'uz','Catar':'qa','Equador':'ec','Paraguai':'py',
